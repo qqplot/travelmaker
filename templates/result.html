@@ -17,10 +17,35 @@
         .custom_zoomcontrol {position:absolute;top:50px;right:10px;width:36px;height:80px;overflow:hidden;z-index:1;background-color:#f5f5f5;} 
         .custom_zoomcontrol span {display:block;width:36px;height:40px;text-align:center;cursor:pointer;}     
         .custom_zoomcontrol span img {width:15px;height:15px;padding:12px 0;border:none;}             
-        .custom_zoomcontrol span:first-child{border-bottom:1px solid #bfbfbf;}            
+        .custom_zoomcontrol span:first-child{border-bottom:1px solid #bfbfbf;}  
+        .label{
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00d3d3;
+            font-size: 10px;
+            text-align: center;
+            color: black;
+            font-family: 'Open Sans';
+            font-weight: bold;
+            border: 2px solid #fff;
+            box-shadow: 0 0 8px rgb(221,221,221);
+        }          
     </style>
 </head>
 <body>
+
+<div class="table_wrap">
+    <table border=1>
+        {% for key, value in result.items() %}
+        <tr>
+            <th>{{ key }}</th>
+            <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>    
+
 <div class="map_wrap">
     <div id="map" style="width:100%;height:100%;position:relative;overflow:hidden;"></div> 
     <!-- 지도타입 컨트롤 div 입니다 -->
@@ -36,34 +61,17 @@
 </div>
 
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=1cec0b1df857e1844b3539a78b3b3116"></script>
-<script>
+<script type="text/javascript">
     var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
         mapOption = { 
-            center: new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
-            level: 10 // 지도의 확대 레벨
+            center: new kakao.maps.LatLng(37.464437, 126.9589679), // 지도의 중심좌표
+            level: 13 // 지도의 확대 레벨
         };  
 
     var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
 
-    // 마커를 표시할 위치와 title 객체 배열입니다 
-    var positions = [
-        {
-            title: '카카오', 
-            latlng: new kakao.maps.LatLng(33.450705, 126.570677)
-        },
-        {
-            title: '생태연못', 
-            latlng: new kakao.maps.LatLng(33.450936, 126.569477)
-        },
-        {
-            title: '텃밭', 
-            latlng: new kakao.maps.LatLng(33.450879, 126.569940)
-        },
-        {
-            title: '근린공원',
-            latlng: new kakao.maps.LatLng(33.451393, 126.570738)
-        }
-    ];
+    
+
 
     // 지도타입 컨트롤의 지도 또는 스카이뷰 버튼을 클릭하면 호출되어 지도타입을 바꾸는 함수입니다
     function setMapType(maptype) { 
@@ -90,36 +98,84 @@
         map.setLevel(map.getLevel() + 1);
     }
 
-    // 마커 이미지의 이미지 주소입니다
-    var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
     
-    for (var i = 0; i < positions.length; i ++) {
-        
-        // 마커 이미지의 이미지 크기 입니다
-        var imageSize = new kakao.maps.Size(24, 35); 
-        
-        // 마커 이미지를 생성합니다    
-        var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
-        
-        // 마커를 생성합니다
-        var marker = new kakao.maps.Marker({
-            map: map, // 마커를 표시할 지도
-            position: positions[i].latlng, // 마커를 표시할 위치
-            title : positions[i].title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
-            image : markerImage // 마커 이미지 
+    var all_paths = JSON.parse('{{ all_paths | tojson }}');
+
+    for(var i = 0; i < all_paths.paths.length; i++) {
+        path = all_paths.paths[i];
+
+        // 선을 구성하는 좌표 배열입니다. 이 좌표들을 이어서 선을 표시합니다
+        var linePath = [];
+
+        // 마커를 표시할 위치와 title 객체 배열입니다 
+        var positions = [];
+
+        for(var j = 0; j < path.length; j++) {
+            var latitude = path[j][2];
+            var longitude = path[j][3];
+            
+            positions.push({title:path[j][0], latlng:new kakao.maps.LatLng(latitude, longitude)});
+            linePath.push(new kakao.maps.LatLng(latitude, longitude));
+        }
+
+        // Path별 색깔 생성
+        var pathColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+
+        // 지도에 표시할 선을 생성합니다
+        var polyline = new kakao.maps.Polyline({
+            path: linePath, // 선을 구성하는 좌표배열 입니다
+            strokeWeight: 5, // 선의 두께 입니다
+            strokeColor: pathColor, // 선의 색깔입니다
+            strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+            strokeStyle: 'solid' // 선의 스타일입니다
         });
+
+        // 지도에 마커를 표시합니다
+        setMarker(map, positions, pathColor); 
+
+        // 지도에 선을 표시합니다 
+        polyline.setMap(map); 
+
     }
+    
+    function setMarker(map, positions) {
+        // 마커 이미지의 이미지 주소입니다
+        var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
+    
+        for (var i = 0; i < positions.length; i ++) {
+            
+            // 마커 이미지의 이미지 크기 입니다
+            // var imageSize = new kakao.maps.Size(24, 35); 
+            
+            // 마커 이미지를 생성합니다    
+            // var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
+            
+            var content = '<div class="label"><span class="left"></span><span class="center">'
+                + (i+1)
+                + '</span><span class="right"></span></div>';
+            
+            // 마커를 생성합니다
+            var marker = new kakao.maps.CustomOverlay({
+                map: map, // 마커를 표시할 지도
+                position: positions[i].latlng, // 마커를 표시할 위치
+                title : positions[i].title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+                content: content,
+                //image : markerImage // 마커 이미지 
+            });
+
+            // 커스텀 오버레이를 지도에 표시합니다
+            marker.setMap(map);
+        }
+    }
+
+
+
 </script>
 
-<table border=1>
-    {% for key, value in result.items() %}
-    <tr>
-        <th>{{ key }}</th>
-        <td>{{ value }}</td>
-    </tr>
-    {% endfor %}
-</table>
+
 
 
 </body>
 </html>
+
+<!-- [('서울', 'C01', 37.55472785, 126.9695263), ('부산', 'C10', 35.11760513, 129.0450602)] -->

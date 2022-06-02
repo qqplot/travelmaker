@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Travel Maker: TEST</title>
+
+</head>
+<body>
+
+<script type="text/javascript">
+    var paths = '{{ all_paths | tojson }}';
+    console.log(paths);
+
+</script>
+
+<div>{{ all_paths }}</div>
+
+<table border=1>
+    {% for key, value in result.items() %}
+    <tr>
+        <th>{{ key }}</th>
+        <td>{{ value }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+</body>
+</html>
+
+<!-- [('서울', 'C01', 37.55472785, 126.9695263), ('부산', 'C10', 35.11760513, 129.0450602)] -->
