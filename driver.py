@@ -69,14 +69,18 @@ if __name__ == "__main__":
     q = conn.query(query_string, db='traveldb')
 
     result=list() # 바깥 리스트
-    for _ in q:
+      for _ in q:
         tmp_result=list() # 안쪽 리스트
+        city_set=set()
         for j in range(len(dict(_)['cities'])):
-            tmp_result.append((dict(dict(_)['cities'][j])['city_nm'],
-                               dict(dict(_)['cities'][j])['city_id'],
-                               dict(dict(_)['cities'][j])['latitude'],
-                               dict(dict(_)['cities'][j])['longitude'] )) # 요소별 삽입 (컬럼명 주의)
-        result.append(tmp_result) # path list를 바깥 리스트에 삽입
+            if not dict(dict(_)['cities'][j])['city_nm'] in city_set :
+                city_set.add((dict(dict(_)['cities'][j])['city_nm']))
+                tmp_result.append((dict(dict(_)['cities'][j])['city_nm'],
+                                   dict(dict(_)['cities'][j])['city_id'],
+                                   dict(dict(_)['cities'][j])['latitude'],
+                                   dict(dict(_)['cities'][j])['longitude'] )) # 요소별 삽입 (컬럼명 주의)
+        if len(tmp_result)==int(days):
+            result.append(tmp_result) # path list를 바깥 리스트에 삽입
     
     print(result[0])
     
