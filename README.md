@@ -118,7 +118,7 @@ return distinct cities
 
 ```
 
-**(b) 조건에 sum 붙이기 -- reduce 함수 쓰기**
+**(b) 교통비 총액이 N원 이상/이하인 경로 찾기**
 
 ```javasript
 
