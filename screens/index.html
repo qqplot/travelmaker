@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Kakao 지도 시작하기</title>
+</head>
+<body>
+
+    <h1>Demo: Travel Maker</h1>
+    <br/>
+
+    <div>
+        <form method="POST" action="/result">
+            <label for="theme">Theme:</label>
+            <select id="theme" name="theme">
+                <option value="Shopping">Shopping</option>
+                <option value="Culture/History">Culture/History</option>
+                <option value="Nature">Nature</option>
+                <option value="Entertainment">Entertainment</option>
+            </select>
+            <br/>
+            <label for="from">From:</label>
+            <select id="from" name="from">
+                <option value="C01">Seoul</option>
+                <option value="C02">Suwon</option>
+                <option value="C03">Cheonan</option>
+                <option value="C04">Daejeon</option>
+                <option value="C05">Daegu</option>
+                <option value="C06">Gyungju</option>
+                <option value="C07">Ulsan</option>
+                <option value="C08">Gyungsan</option>
+                <option value="C09">Miryang</option>
+                <option value="C10">Busan</option>
+                <option value="C11">Gongju</option>
+                <option value="C12">Nonsan</option>
+                <option value="C13">Jeonju</option>
+                <option value="C14">Namwon</option>
+                <option value="C15">Goksung</option>
+                <option value="C16">Suncheon</option>
+                <option value="C17">Yeosu</option>
+                <option value="C18">Yangpyung</option>
+                <option value="C19">Wonju</option>
+                <option value="C20">Hoengseong</option>
+                <option value="C21">Pyeongchang</option>
+                <option value="C22">Gangneung</option>
+                <option value="C23">Pohang</option>
+              </select>
+            <label for="to">To:</label>
+            <select id="to" name="to">
+                <option value="C01">Seoul</option>
+                <option value="C02">Suwon</option>
+                <option value="C03">Cheonan</option>
+                <option value="C04">Daejeon</option>
+                <option value="C05">Daegu</option>
+                <option value="C06">Gyungju</option>
+                <option value="C07">Ulsan</option>
+                <option value="C08">Gyungsan</option>
+                <option value="C09">Miryang</option>
+                <option value="C10" selected>Busan</option>
+                <option value="C11">Gongju</option>
+                <option value="C12">Nonsan</option>
+                <option value="C13">Jeonju</option>
+                <option value="C14">Namwon</option>
+                <option value="C15">Goksung</option>
+                <option value="C16">Suncheon</option>
+                <option value="C17">Yeosu</option>
+                <option value="C18">Yangpyung</option>
+                <option value="C19">Wonju</option>
+                <option value="C20">Hoengseong</option>
+                <option value="C21">Pyeongchang</option>
+                <option value="C22">Gangneung</option>
+                <option value="C23">Pohang</option>
+              </select>           
+            <br/>
+            <label for="days">Days of Travel:</label>
+            <label><input type="radio" name="days" value="2" checked>2 days</label>
+            <label><input type="radio" name="days" value="5">5 days</label>
+            <br/>
+            <label for="depart_time">Depart Time:</label>
+            <input name= "depart_time" type="time" value="10:00:00" min="07:00:00" max="19:00:00">
+            <br/>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <br/><br/>
+
+	<div id="map" style="width:500px;height:400px;"></div>
+    
+	<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=1cec0b1df857e1844b3539a78b3b3116"></script>
+	<script>
+		var container = document.getElementById('map');
+		var options = {
+			center: new kakao.maps.LatLng(33.450701, 126.570667),
+			level: 3
+		};
+
+		var map = new kakao.maps.Map(container, options);
+	</script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=1cec0b1df857e1844b3539a78b3b3116&libraries=LIBRARY"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=1cec0b1df857e1844b3539a78b3b3116&libraries=services,clusterer,drawing"></script>
+</body>
+</html>
