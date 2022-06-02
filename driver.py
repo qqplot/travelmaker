@@ -44,8 +44,17 @@ if __name__ == "__main__":
         '''%(city_id_from, days, city_id_to, depart_time)
     q = conn.query(query_string, db='traveldb')
 
+    result=list() # 바깥 리스트
     for _ in q:
-        print(dict(_))
+        tmp_result=list() # 안쪽 리스트
+        for j in range(len(dict(_)['cities'])):
+            tmp_result.append((dict(dict(_)['cities'][j])['city_nm'],
+                               dict(dict(_)['cities'][j])['city_id'],
+                               dict(dict(_)['cities'][j])['latitude'],
+                               dict(dict(_)['cities'][j])['longitude'] )) # 요소별 삽입 (컬럼명 주의)
+        result.append(tmp_result) # path list를 바깥 리스트에 삽입
+        print(result)
+    conn.close()
     
     conn.close()
 
