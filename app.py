@@ -32,6 +32,7 @@ def get_result():
 
     paths = nc.getPaths(conn, city_id_from, city_id_to, depart_time, days)
 
+    conn.close()
     # Path별 칼라 생성
     pathColorList = []
     for _ in range(len(paths)):
@@ -40,13 +41,28 @@ def get_result():
 
     # Detail 정보를 위한 도시 노드 리턴
     cities = nc.get_unique_city(paths)
-    print(cities)
+
+    # 구글 빅쿼리에서 Detail 정보를 가져온다.
+    conn = gc()
+ 
+    details = {}
+    idx = 0
+    for city in cities:
+        print(city)
+        key, value = gc.recommend(conn, city[1], city[0], theme, city[3], city[2])
+        details[key] = value
+        # if idx > 1:
+        #     break;
+        # idx += 1
+        
+    conn.close()
+
+    return render_template('result.html', 
+        result=result, 
+        all_paths={'paths' : paths}, 
+        pathColorList=pathColorList, detailInfo=details)
 
     
-
-    return render_template('result.html', result= result, all_paths={'paths' : paths}, pathColorList=pathColorList)
-
-
 
 
 if __name__ == '__main__':

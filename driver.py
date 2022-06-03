@@ -42,17 +42,22 @@ class Neo4jConnection:
             WHERE rels[0].depart_time < time('%s')
             WITH nodes(p) as cities, p
             RETURN DISTINCT cities
+            LIMIT 100
             '''%(city_id_from, new_days, city_id_to, depart_time)
         q = conn.query(query_string, db='traveldb')
-        result=list() # 바깥 리스트
+        result = list() # 바깥 리스트
         for _ in q:
             tmp_result=list() # 안쪽 리스트
+            city_set=set()
             for j in range(len(dict(_)['cities'])):
-                tmp_result.append((dict(dict(_)['cities'][j])['city_nm'],
-                                dict(dict(_)['cities'][j])['city_id'],
-                                dict(dict(_)['cities'][j])['latitude'],
-                                dict(dict(_)['cities'][j])['longitude'] )) # 요소별 삽입 (컬럼명 주의)
-            result.append(tmp_result) # path list를 바깥 리스트에 삽입
+                if not dict(dict(_)['cities'][j])['city_nm'] in city_set :
+                    city_set.add((dict(dict(_)['cities'][j])['city_nm']))
+                    tmp_result.append((dict(dict(_)['cities'][j])['city_nm'],
+                                    dict(dict(_)['cities'][j])['city_id'],
+                                    dict(dict(_)['cities'][j])['latitude'],
+                                    dict(dict(_)['cities'][j])['longitude'] )) # 요소별 삽입 (컬럼명 주의)
+            if len(tmp_result)==int(days):
+                result.append(tmp_result) # path list를 바깥 리스트에 삽입
 
         return result 
     
@@ -97,7 +102,8 @@ class GoogleBigQueryConnection:
         select city_id, attraction_nm, longitude, latitude 
         FROM `travel-maker-352004.tour.attraction` 
         where city_id = '{}' and theme = '{}'
-        order by rate desc limit 2
+        and  rate > 4.0
+        order by rand() desc limit 2
         """.format(city_id, theme)
 
         query_job = conn.query_gcp(sql)
@@ -118,8 +124,8 @@ class GoogleBigQueryConnection:
         sql = """
         WITH restaurant_dist AS(
         select rest_id, rest_nm, rest_cat, rate,
-            st_distance(st_geogpoint({}, {}), st_geogpoint(longitude, latitude))as distance
-        from `travel-maker-352004.tour.restaurant`
+            st_distance(st_geogpoint({}, {}), st_geogpoint(longitude, latitude)) as distance
+        from `travel-maker-352004.tour.restaurants`
         where city_id = '{}')
         SELECT d.rest_cat, d.rest_nm, d.rate, d.distance
         FROM restaurant_dist d
@@ -128,6 +134,7 @@ class GoogleBigQueryConnection:
         FROM restaurant_dist d
         where d.distance != 0 and d.rate > 4.5
         group by d.rest_cat)
+        LIMIT 10
         """.format(longitude, latitude, city_id)
 
         query_job = conn.query_gcp(sql)
@@ -139,18 +146,69 @@ class GoogleBigQueryConnection:
         
         return restaurants
 
+    def selectAccomodation(conn, city_id, longitude, latitude):
+
+        # city의 위도/경도 및 city id 입력하면 
+        # 해당 city역에서 평점 높고 거리 가까운 숙소 5개 뽑아줌 (평점 4.0이상)
+
+        sql = """
+            WITH accomodation_dist AS(
+                select accom_nm, rate,
+                    st_distance(st_geogpoint({}, {}), st_geogpoint(longitude, latitude))as distance
+                from `tour.accomodation`
+                where city_id = '{}')
+            SELECT d.accom_nm, d.rate, d.distance
+            FROM accomodation_dist d
+            WHERE d.rate > 4.0
+            ORDER BY d.rate DESC, d.distance
+            LIMIT 5
+            """.format(longitude, latitude, city_id)
+
+        query_job = conn.query_gcp(sql)
+        df = query_job.to_dataframe()
+
+        accomodations = []
+        for _, row in df.iterrows():
+            accomodations.append((row['accom_nm'], row['rate'], row['distance']))
+        
+        return accomodations
+
+    def recommend(conn, city_id, city_name, theme, longitude, latitude):
+
+        attractions = GoogleBigQueryConnection.selectAttraction(conn, city_id, theme)
+        restaurants = []
+        # restaurants = GoogleBigQueryConnection.selectRestaurant(conn, city_id, longitude, latitude)
+        for att in attractions:
+            c_id, c_name, x, y = att
+            restaurants.extend(GoogleBigQueryConnection.selectRestaurant(conn, city_id, x, y))
+            break
+
+        accomodations = GoogleBigQueryConnection.selectAccomodation(conn, city_id, longitude, latitude)
+
+        result = {
+            'city_name' : city_name,
+            'attractions' : attractions,
+            'restaurants' : restaurants,
+            'accomodations' : accomodations,
+        }
+
+        return city_id, result
+
+    
 
 if __name__ == "__main__":
     conn = GoogleBigQueryConnection()
     city_id_from = "C01"
-    city_id_to = "C22"
+    city_id_to = "C05"
     depart_time = "13:00"
     days = "2"
     theme = 'Nature'
+    longitude = "128.6287755"
+    latitude = "35.87943614"
 
-    q = GoogleBigQueryConnection.selectAttraction(conn, city_id_to, theme)
+    city_id, result = GoogleBigQueryConnection.recommend(conn, city_id_to, theme, longitude, latitude)
 
-    print(q)
+    print(result)
 
     conn.close()
 

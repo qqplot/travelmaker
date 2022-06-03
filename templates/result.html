@@ -34,6 +34,15 @@
         .outer_frame {
             padding: 10px;
         }
+        .detailInfo {
+            display: flex;
+            align-items: flex-start;
+            justify-items: left;
+            flex-direction: row;
+        }
+        .info {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -176,17 +185,102 @@
             marker.setMap(map);
         }
     }
-    var bDisplay =true;
-    function doDisplay(obj) {
-        console.log(obj.className);
-        var con = document.getElementById("cotent_detail");
-        console.log(con);
-        con.innerHTML = "<p>" + obj.className + "</p>";
 
+    var bDisplay =true;
+
+    function doDisplay(obj) {
+        
+        var cities = document.getElementsByClassName("cities");
+        for(var i = 0; i < cities.length; i++) {
+            cities.item(i).style.display = 'none';
+        }
+
+        var infoId = "city-" + obj.className;
+        console.log(infoId);
+        if(document.getElementById(infoId).style.display === 'block') {
+            document.getElementById(infoId).style.display = 'none';
+        } else {
+            document.getElementById(infoId).style.display = 'block';
+        }
+        document.getElementById(infoId).scrollIntoView();
     }
 </script>
 
-<h2>Condition</h2>
+<h2>Paths</h2>
+<div class="path_wrap">
+    <table>
+    {% set paths = all_paths['paths'] %}
+    {% set pathColorList = pathColorList %}
+    {% for p in paths %}
+        <tr>
+            <th class='pathColor{{ loop.index0 }}'>
+                <b style='color: {{ pathColorList[loop.index0]}};'>■</b>
+                <span style="color: black;">Path {{ loop.index }} :</span>
+            </th>
+            <td>
+            {% for node in p %}
+                <a href="javascript:;" onclick="doDisplay(this);" class="{{ node[1] }}">
+                    {{ node[0] }}
+                </a>
+                {% if not loop.last: %}
+                    ->
+                {% endif %}
+                
+            {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+</div>
+
+<h2>Recommend for you</h2>
+<div class="detail_wrap">
+    <div id="cotent_detail">
+        {% set detailInfo = detailInfo %}
+        {% for city_id, detail in detailInfo.items() %}
+            <div class= "cities" id="city-{{ city_id }}" style="display: none;">
+                <b>{{ detail.city_name }}</b>
+                <div class="detailInfo">
+                    <div class="info">
+                        <h4>Attractions</h4>
+                        <ul>
+                        {% for at in detail['attractions'] %}
+                            <li>{{ at[1] }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="info">
+                        <h4>Restaurants</h4>                        
+                        {% for re in detail['restaurants'] %}
+                            <ul>
+                                <li>종류: {{ re[0] }}</li>
+                                <li>이름: {{ re[1] }}</li>
+                                <li>평점: {{ re[2] }}</li>
+                            </ul>
+                        {% endfor %}
+                        
+                    </div>
+                    <div class="info">
+                        <h4>Accomodations</h4> 역 근처
+                        
+                        {% for ac in detail['accomodations'] %}
+                            <ul>
+                                <li>{{ ac[0] }}</li>
+                                <li>평점 {{ ac[1] }}</li>
+                            </ul>
+                        {% endfor %}  
+                        
+                    </div>
+
+                </div>
+              
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<h2>Search Conditions</h2>
 <div class="table_wrap">
     <table border=1>
         {% for key, value in result.items() %}
@@ -198,37 +292,6 @@
     </table>
 </div>    
 
-<h2>Paths</h2>
-<div class="path_wrap">
-    <table>
-    {% set paths = all_paths['paths'] %}
-    {% set pathColorList = pathColorList %}
-    {% for p in paths %}
-        <tr>
-            <th class='pathColor{{ loop.index0 }}'  
-                <b style='color: {{ pathColorList[loop.index0]}};'>■</b>
-                <span style="color: black;">Path {{ loop.index }} :</span>
-            </th>
-            <td>
-            {% for node in p %}
-                {% if loop.last: %}
-                    <a href="javascript:;" onclick="doDisplay(this);" class="{{ node[1] }}">{{ node[0] }}</a>
-                {% else: %}
-                    <span>{{ node[0] }} -> </span>
-                {% endif %}
-            {% endfor %}
-            </td>
-        </tr>
-    {% endfor %}
-    </table>
-</div>
-<h2>Details</h2>
-<div class="detail_wrap">
-    <div id="cotent_detail">
-        HIHI
-    </div>
-
-</div>
 </div>
 
 
