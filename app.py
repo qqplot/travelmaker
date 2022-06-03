@@ -1,6 +1,7 @@
 from crypt import methods
 from flask import Flask, render_template, url_for, request
-from driver import Neo4jConnection as nc
+from driver import Neo4jConnection as nc, GoogleBigQueryConnection as gc
+import random
 
 neo4j_uri = "bolt://localhost:7687"
 neo4j_user = "neo4j"
@@ -30,9 +31,23 @@ def get_result():
     days = result['days']
 
     paths = nc.getPaths(conn, city_id_from, city_id_to, depart_time, days)
-    print(paths[0])
 
-    return render_template('result.html', result= result, all_paths={'paths' : paths})
+    # Path별 칼라 생성
+    pathColorList = []
+    for _ in range(len(paths)):
+        color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+        pathColorList.append(color)
+
+    # Detail 정보를 위한 도시 노드 리턴
+    cities = nc.get_unique_city(paths)
+    print(cities)
+
+    
+
+    return render_template('result.html', result= result, all_paths={'paths' : paths}, pathColorList=pathColorList)
+
+
+
 
 if __name__ == '__main__':
     app.run(host='localhost', port=8080, debug = True)    

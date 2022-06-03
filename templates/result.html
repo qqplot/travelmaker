@@ -22,7 +22,7 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: #00d3d3;
+            /* background: #00d3d3; */
             font-size: 10px;
             text-align: center;
             color: black;
@@ -31,20 +31,17 @@
             border: 2px solid #fff;
             box-shadow: 0 0 8px rgb(221,221,221);
         }          
+        .outer_frame {
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
+<div class="outer_frame">
+<h1>Demo: Travel Maker</h1>
+<hr/>
 
-<div class="table_wrap">
-    <table border=1>
-        {% for key, value in result.items() %}
-        <tr>
-            <th>{{ key }}</th>
-            <td>{{ value }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-</div>    
+<h2>Map</h2>
 
 <div class="map_wrap">
     <div id="map" style="width:100%;height:100%;position:relative;overflow:hidden;"></div> 
@@ -98,7 +95,9 @@
         map.setLevel(map.getLevel() + 1);
     }
 
-    
+    // Path별 색깔 리스트
+    var pathColorList = JSON.parse('{{ pathColorList | tojson }}');
+
     var all_paths = JSON.parse('{{ all_paths | tojson }}');
 
     for(var i = 0; i < all_paths.paths.length; i++) {
@@ -119,12 +118,14 @@
         }
 
         // Path별 색깔 생성
-        var pathColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+        var pathColor = pathColorList[i];
+        // var pathColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+        // pathColorList.push(pathColor);
 
         // 지도에 표시할 선을 생성합니다
         var polyline = new kakao.maps.Polyline({
             path: linePath, // 선을 구성하는 좌표배열 입니다
-            strokeWeight: 5, // 선의 두께 입니다
+            strokeWeight: 3, // 선의 두께 입니다
             strokeColor: pathColor, // 선의 색깔입니다
             strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
             strokeStyle: 'solid' // 선의 스타일입니다
@@ -134,8 +135,7 @@
         setMarker(map, positions, pathColor); 
 
         // 지도에 선을 표시합니다 
-        polyline.setMap(map); 
-
+        polyline.setMap(map);      
     }
     
     function setMarker(map, positions) {
@@ -150,10 +150,19 @@
             // 마커 이미지를 생성합니다    
             // var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
             
-            var content = '<div class="label"><span class="left"></span><span class="center">'
+            var content;
+            if(i == 0 || i == positions.length - 1) {
+                content = '<div class="img_label"><span class="left"></span><span class="center">' 
+                + '<img src=' + imageSrc + ' width="14" height="20">'
+                + '</span><span class="right"></span></div>';
+            } else {
+                content = '<div class="label" style="background-color:' + pathColor + ';">'
+                + '<span class="left"></span>'
+                + '<span class="center">' 
                 + (i+1)
                 + '</span><span class="right"></span></div>';
-            
+            }
+
             // 마커를 생성합니다
             var marker = new kakao.maps.CustomOverlay({
                 map: map, // 마커를 표시할 지도
@@ -167,10 +176,60 @@
             marker.setMap(map);
         }
     }
+    var bDisplay =true;
+    function doDisplay(obj) {
+        console.log(obj.className);
+        var con = document.getElementById("cotent_detail");
+        console.log(con);
+        con.innerHTML = "<p>" + obj.className + "</p>";
 
-
-
+    }
 </script>
+
+<h2>Condition</h2>
+<div class="table_wrap">
+    <table border=1>
+        {% for key, value in result.items() %}
+        <tr>
+            <th>{{ key }}</th>
+            <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>    
+
+<h2>Paths</h2>
+<div class="path_wrap">
+    <table>
+    {% set paths = all_paths['paths'] %}
+    {% set pathColorList = pathColorList %}
+    {% for p in paths %}
+        <tr>
+            <th class='pathColor{{ loop.index0 }}'  
+                <b style='color: {{ pathColorList[loop.index0]}};'>■</b>
+                <span style="color: black;">Path {{ loop.index }} :</span>
+            </th>
+            <td>
+            {% for node in p %}
+                {% if loop.last: %}
+                    <a href="javascript:;" onclick="doDisplay(this);" class="{{ node[1] }}">{{ node[0] }}</a>
+                {% else: %}
+                    <span>{{ node[0] }} -> </span>
+                {% endif %}
+            {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+</div>
+<h2>Details</h2>
+<div class="detail_wrap">
+    <div id="cotent_detail">
+        HIHI
+    </div>
+
+</div>
+</div>
 
 
 
