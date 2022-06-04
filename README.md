@@ -46,6 +46,21 @@ MERGE (c1)-[r:goes {tid: row.transportation_id,
             ]->(c2)
 ;
 
+//거리넣기
+match (a:city)-[r:goes]->(b:city)
+set r.dist = (point.distance(a.location, b.location))/1000
+;
+
+//토탈거리로 제한걸기 
+MATCH p=(:city{city_id:"C01"})-[rels:goes*3]->(:city{city_id:"C07"})
+where reduce(total = 0, r IN rels | total + r.dist)<400
+return p
+limit 5000
+;
+
+
+
+
 
 //LOAD attractions 
 LOAD CSV WITH HEADERS FROM "file:///attractions.csv" AS row
