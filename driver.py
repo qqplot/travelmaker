@@ -50,13 +50,12 @@ class Neo4jConnection:
         tmp_result=deque()
         past_result=deque()
         result_list_name={0}
-        tmp_result_city=list()
+        tmp_result_city=set()
         for _ in q:
             city_set=set()
             for i in range(len(dict(_)['node'])):
-                if i != len(dict(_)['node'])-1 and not dict(dict(dict(_))['node'][i])['city_nm'] in city_set:
+                if i != len(dict(_)['node'])-1 and  dict(dict(dict(_))['node'][i])['city_nm'] not in city_set:
                     city_set.add(dict(dict(dict(_))['node'][i])['city_nm'])
-                    tmp_result_city.append(dict(dict(dict(_))['node'][i])['city_nm'])
                     tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
                 dict(dict(dict(_))['node'][i])['city_id'],
                 dict(dict(dict(_))['node'][i])['latitude'],
@@ -64,7 +63,7 @@ class Neo4jConnection:
                 dict(dict(dict(_))['rels'][i])['trans_cate']               
                                       ))
                 elif i == len(dict(_)['node'])-1:
-                    tmp_result_city.append(dict(dict(dict(_))['node'][i])['city_nm'])
+                    tmp_result_city.add(dict(dict(dict(_))['node'][i])['city_nm'])
                     tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
                 dict(dict(dict(_))['node'][i])['city_id'],                
                 dict(dict(dict(_))['node'][i])['latitude'],
@@ -78,22 +77,22 @@ class Neo4jConnection:
             past_result=tmp_result
             tmp_result=list()
             tmp_result_city=set()  
-            result_list.popleft()
-            result_list=list(result_list)
-            result_list=list(dict.fromkeys(result_list))
+        result_list.popleft()
+        result_list=list(result_list)
+        result_list=list(dict.fromkeys(result_list))
 
-            MAX_LEN = 10
-            result_list_shuffle = [None] * MAX_LEN
+        MAX_LEN = 10
+        result_list_shuffle = [None] * MAX_LEN
 
-            if len(result_list) < MAX_LEN: 
-                return result_list
-            else:
-                tmp_list=list(range(len(result_list)))
-                tmp_list=random.sample(tmp_list,MAX_LEN)
-                for i in range(MAX_LEN):
-                    result_list_shuffle[i]=result_list[tmp_list[i]]
+        if len(result_list) < MAX_LEN: 
+            return result_list
+        else:
+            tmp_list=list(range(len(result_list)))
+            tmp_list=random.sample(tmp_list,MAX_LEN)
+            for i in range(MAX_LEN):
+                result_list_shuffle[i]=result_list[tmp_list[i]]
 
-                return result_list_shuffle
+            return result_list_shuffle
 
 
     
