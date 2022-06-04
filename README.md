@@ -27,9 +27,9 @@ neo4j의 `import` 폴더에 현재 프로젝트의 data를 복사해서 넣습�
 LOAD CSV WITH HEADERS FROM "file:///citycode.csv" AS row
 CREATE (c:city {city_nm: row.city_name, 
                 city_id : row.city_id,
-                location : point({latitude:toFloat(row.x), longitude:toFloat(row.y)}),
-                latitude:toFloat(row.x), 
-                longitude:toFloat(row.y)
+                location : point({latitude:toFloat(row.y), longitude:toFloat(row.x)}),
+                latitude:toFloat(row.y), 
+                longitude:toFloat(row.x)
                 })
 ;
 
