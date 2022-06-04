@@ -59,13 +59,18 @@ class Neo4jConnection:
                 dict(dict(dict(_))['node'][i])['city_id'],
                 dict(dict(dict(_))['node'][i])['latitude'],
                 dict(dict(dict(_))['node'][i])['longitude'],
-                dict(dict(dict(_))['rels'][i])['trans_cate']))
+                dict(dict(dict(_))['rels'][i])['trans_cate'],
+                dict(dict(dict(_))['rels'][i])['depart_time'],
+                dict(dict(dict(_))['rels'][i])['dest_time']                      
+                                      ))
                 else:
                     tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
                 dict(dict(dict(_))['node'][i])['city_id'],                
                 dict(dict(dict(_))['node'][i])['latitude'],
                 dict(dict(dict(_))['node'][i])['longitude'],
-                                      0))
+                                      'train',
+                dict(dict(dict(_))['rels'][i])['depart_time'],
+                dict(dict(dict(_))['rels'][i])['dest_time']))
             if  len(dict(_)['node'])==len(tmp_result) and not past_result == tmp_result:
                 result_list.append(tuple(tmp_result))
             past_result=tmp_result
