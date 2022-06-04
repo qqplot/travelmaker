@@ -49,12 +49,14 @@ class Neo4jConnection:
         result_list.append(0)
         tmp_result=deque()
         past_result=deque()
-
+        result_list_name={0}
+        tmp_result_city=list()
         for _ in q:
             city_set=set()
             for i in range(len(dict(_)['node'])):
                 if i != len(dict(_)['node'])-1 and not dict(dict(dict(_))['node'][i])['city_nm'] in city_set:
                     city_set.add(dict(dict(dict(_))['node'][i])['city_nm'])
+                    tmp_result_city.append(dict(dict(dict(_))['node'][i])['city_nm'])
                     tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
                 dict(dict(dict(_))['node'][i])['city_id'],
                 dict(dict(dict(_))['node'][i])['latitude'],
@@ -63,7 +65,8 @@ class Neo4jConnection:
                 dict(dict(dict(_))['rels'][i])['depart_time'],
                 dict(dict(dict(_))['rels'][i])['dest_time']                      
                                       ))
-                else:
+                elif i == len(dict(_)['node'])-1:
+                    tmp_result_city.append(dict(dict(dict(_))['node'][i])['city_nm'])
                     tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
                 dict(dict(dict(_))['node'][i])['city_id'],                
                 dict(dict(dict(_))['node'][i])['latitude'],
@@ -71,26 +74,29 @@ class Neo4jConnection:
                                       'train',
                 dict(dict(dict(_))['rels'][i])['depart_time'],
                 dict(dict(dict(_))['rels'][i])['dest_time']))
-            if  len(dict(_)['node'])==len(tmp_result) and not past_result == tmp_result:
+            tmp_result_city=tuple(tmp_result_city)
+            if  len(dict(_)['node'])==len(tmp_result) and not past_result == tmp_result and tmp_result_city not in result_list_name:
+                result_list_name.add(tmp_result_city)
                 result_list.append(tuple(tmp_result))
             past_result=tmp_result
             tmp_result=list()
-        result_list.popleft()
-        result_list=list(result_list)
-        result_list=list(dict.fromkeys(result_list))
+            tmp_result_city=set()  
+            result_list.popleft()
+            result_list=list(result_list)
+            result_list=list(dict.fromkeys(result_list))
 
-        MAX_LEN = 10
-        result_list_shuffle = [None] * MAX_LEN
-        
-        if len(result_list) < MAX_LEN: 
-            return result_list
-        else:
-            tmp_list=list(range(len(result_list)))
-            tmp_list=random.sample(tmp_list,MAX_LEN)
-            for i in range(MAX_LEN):
-                result_list_shuffle[i]=result_list[tmp_list[i]]
-            
-            return result_list_shuffle
+            MAX_LEN = 10
+            result_list_shuffle = [None] * MAX_LEN
+
+            if len(result_list) < MAX_LEN: 
+                return result_list
+            else:
+                tmp_list=list(range(len(result_list)))
+                tmp_list=random.sample(tmp_list,MAX_LEN)
+                for i in range(MAX_LEN):
+                    result_list_shuffle[i]=result_list[tmp_list[i]]
+
+                return result_list_shuffle
 
 
     
