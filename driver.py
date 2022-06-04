@@ -1,6 +1,8 @@
 from neo4j import GraphDatabase
 from google.cloud import bigquery
 from google.oauth2 import service_account
+from collections import deque
+import random
 import pandas as pd
 
 class Neo4jConnection:
@@ -35,46 +37,70 @@ class Neo4jConnection:
 
     def getPaths(conn, city_id_from, city_id_to, depart_time, days):
 
-        new_days = "2" if days == "2" else "3"
-    
-       query_string = '''
+        new_days = "2" if days == "2" else "4"
+        query_string = '''
             MATCH p=(c1:city{city_id:"%s"})-[rels:goes*1..%s]->(c2:city{city_id:"%s"})
-            WHERE rels[0].depart_time < time('%s') and reduce(total=0, r in rels | total+r.fare)<40000
+            WHERE rels[0].depart_time < time('%s') and reduce(total=0, r in rels | total+r.dist)<400
             RETURN nodes(p) as node,relationships(p) as rels
-            limit 1000
+            limit 500
             '''%(city_id_from, new_days, city_id_to, depart_time)
-        q = conn.query(query_string, db='neo4j')
-        result_list=[None]
-        city_list=set() # prevent dupliactes
-        tmp_result=list()
-        past_result=list()
-        print("query processed")
+        q = conn.query(query_string, db='traveldb')
+        result_list=deque()
+        result_list.append(0)
+        tmp_result=deque()
+        past_result=deque()
+
         for _ in q:
+            city_set=set()
             for i in range(len(dict(_)['node'])):
-                if i != len(dict(_)['node'])-1:
+                if i != len(dict(_)['node'])-1 and not dict(dict(dict(_))['node'][i])['city_nm'] in city_set:
+                    city_set.add(dict(dict(dict(_))['node'][i])['city_nm'])
                     tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
                 dict(dict(dict(_))['node'][i])['city_id'],
+                dict(dict(dict(_))['node'][i])['latitude'],
+                dict(dict(dict(_))['node'][i])['longitude'],
                 dict(dict(dict(_))['rels'][i])['trans_cate']))
                 else:
                     tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
-                dict(dict(dict(_))['node'][i])['city_id'],
+                dict(dict(dict(_))['node'][i])['city_id'],                
+                dict(dict(dict(_))['node'][i])['latitude'],
+                dict(dict(dict(_))['node'][i])['longitude'],
                                       0))
-            if  not past_result == tmp_result:
+            if  len(dict(_)['node'])==len(tmp_result) and not past_result == tmp_result:
                 result_list.append(tuple(tmp_result))
             past_result=tmp_result
             tmp_result=list()
-        del result_list[0]
-        print(result_list)
-        result_tuple=set(tuple(result_list))
-        print(result_tuple)
+        result_list.popleft()
+        result_list=list(result_list)
+        result_list=list(dict.fromkeys(result_list))
+
+        MAX_LEN = 10
+        result_list_shuffle = [None] * MAX_LEN
+        
+        if len(result_list) < MAX_LEN: 
+            return result_list
+        else:
+            tmp_list=list(range(len(result_list)))
+            tmp_list=random.sample(tmp_list,MAX_LEN)
+            for i in range(MAX_LEN):
+                result_list_shuffle[i]=result_list[tmp_list[i]]
+            
+            return result_list_shuffle
+
+
+    
     
     def get_unique_city(paths):
         
         cities = set()
+        result = []
         for path in paths:
             for p in path:
-                cities.add(p);
-        return cities
+                if not p[0] in cities:
+                    cities.add(p[0])
+                    result.append(p)
+
+        return result
 
 
 class GoogleBigQueryConnection:
@@ -180,27 +206,90 @@ class GoogleBigQueryConnection:
         
         return accomodations
 
-    def recommend(conn, city_id, city_name, theme, longitude, latitude):
 
-        attractions = GoogleBigQueryConnection.selectAttraction(conn, city_id, theme)
-        restaurants = []
-        # restaurants = GoogleBigQueryConnection.selectRestaurant(conn, city_id, longitude, latitude)
-        for att in attractions:
-            c_id, c_name, x, y = att
-            restaurants.extend(GoogleBigQueryConnection.selectRestaurant(conn, city_id, x, y))
-            break
+    def recommend(client, city_id, x, y, theme, city_name):
+        sql = """
+        WITH accommodation AS(
+              select city_id, accom_nm, rate, longitude, latitude, 
+              round(st_distance(st_geogpoint({}, {}), st_geogpoint(longitude, latitude)),2) as distance
+              from `travel-maker-352004.tour.accomodation`
+              where city_id = '{}'
+              AND rate > 4.0
+              ORDER BY rate DESC, distance
+              LIMIT 5),
+        attraction AS(
+              select city_id, attraction_nm, rate, longitude, latitude
+                from `travel-maker-352004.tour.attraction`
+              where city_id = '{}' and theme = '{}' and rate > 4.0
+              order by rand()
+              limit 2),
+        avg_dist AS (
+              select city_id, avg(longitude) as avglong, avg(latitude) as avglat
+              from attraction
+              group by city_id
+        ),
+        restaurant_dist AS(
+              select r.city_id, r.rest_id, r.rest_nm, r.rest_cat, r.rate, r.longitude, r.latitude,
+                cast(st_distance(st_geogpoint(a.avglong, a.avglat), st_geogpoint(r.longitude, r.latitude)) as int64)as distance
+              from `travel-maker-352004.tour.restaurants` r
+              JOIN avg_dist a
+              ON r.city_id = a.city_id 
+              where r.city_id = '{}'
+        ),
+        row_num_add AS(
+              SELECT *, ROW_NUMBER() OVER(PARTITION BY rest_cat ORDER BY distance) AS row_number
+              FROM restaurant_dist
+              WHERE distance >= 1.0 AND rate > 4.5
+        ),
+        restaurant AS(
+              SELECT city_id, rest_cat, rest_nm, rate, distance, longitude, latitude
+              from row_num_add
+              where row_number=1
+        )
+        SELECT tmp1.city_id, 
+               tmp1.accom_nm, 
+               tmp1.rate as AccomRate, 
+               tmp1.distance as AccomDist, 
+               tmp1.longitude as AccomX, 
+               tmp1.latitude as AccomY,
+               tmp2.rest_cat, 
+               tmp2.rest_nm, 
+               tmp2.rate as RestRate, 
+               tmp2.distance as RestDist, 
+               tmp2.longitude as RestX, 
+               tmp2.latitude as RestY,
+               tmp3.attraction_nm, 
+               tmp3.longitude as AttX, 
+               tmp3.latitude as AttY
+          from accommodation as tmp1
+          join restaurant as tmp2 on tmp1.city_id = tmp2.city_id
+          join (select city_id, attraction_nm, longitude, latitude
+                  from attraction) as tmp3
+               on tmp2.city_id = tmp3.city_id
+        """.format(x, y, city_id, city_id, theme, city_id)
 
-        accomodations = GoogleBigQueryConnection.selectAccomodation(conn, city_id, longitude, latitude)
+        query_job = client.query_gcp(sql)
+        df = query_job.to_dataframe()
+
+        attractions = set()
+        restaurants = set()
+        accomodations = set()
+
+        for _, row in df.iterrows():
+            accomodations.add((row['accom_nm'], round(row['AccomRate'], 2), row['AccomDist'], row['AccomX'], row['AccomY']))
+            restaurants.add((row['rest_cat'], row['rest_nm'], round(row['RestRate'],2), row['RestDist'], row['RestX'], row['RestY']))
+            attractions.add((row['city_id'], row['attraction_nm'], row['AttX'], row['AttY']))
+
 
         result = {
             'city_name' : city_name,
-            'attractions' : attractions,
-            'restaurants' : restaurants,
-            'accomodations' : accomodations,
-            'longitude' : longitude,
-            'latitude' : latitude,
+            'attractions' : list(attractions),
+            'restaurants' : list(restaurants),
+            'accomodations' : list(accomodations),
+            'longitude' : x,
+            'latitude' : y,
         }
-
+      
         return city_id, result
 
     

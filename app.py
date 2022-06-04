@@ -46,10 +46,10 @@ def get_result():
     conn = gc()
  
     details = {}
-    idx = 0
+
     for city in cities:
         print(city)
-        key, value = gc.recommend(conn, city[1], city[0], theme, city[3], city[2])
+        key, value = gc.recommend(conn, city[1], city[3], city[2], theme, city[0])
         details[key] = value
         
     conn.close()
