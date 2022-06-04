@@ -37,30 +37,36 @@ class Neo4jConnection:
 
         new_days = "2" if days == "2" else "3"
     
-        query_string = '''
-            MATCH p=(:city{city_id:"%s"})-[rels:goes*2..%s]->(:city{city_id:"%s"})
-            WHERE rels[0].depart_time < time('%s')
-              AND reduce(total=0, r in rels | total + r.dist) < 400
-            RETURN distinct nodes(p) as cities 
-            limit 5000
+       query_string = '''
+            MATCH p=(c1:city{city_id:"%s"})-[rels:goes*1..%s]->(c2:city{city_id:"%s"})
+            WHERE rels[0].depart_time < time('%s') and reduce(total=0, r in rels | total+r.fare)<40000
+            RETURN nodes(p) as node,relationships(p) as rels
+            limit 1000
             '''%(city_id_from, new_days, city_id_to, depart_time)
-        q = conn.query(query_string, db='traveldb')
-        print(dict(q))
-        result = list() # 바깥 리스트
+        q = conn.query(query_string, db='neo4j')
+        result_list=[None]
+        city_list=set() # prevent dupliactes
+        tmp_result=list()
+        past_result=list()
+        print("query processed")
         for _ in q:
-            tmp_result=list() # 안쪽 리스트
-            city_set=set()
-            for j in range(len(dict(_)['cities'])):
-                if not dict(dict(_)['cities'][j])['city_nm'] in city_set :
-                    city_set.add((dict(dict(_)['cities'][j])['city_nm']))
-                    tmp_result.append((dict(dict(_)['cities'][j])['city_nm'],
-                                    dict(dict(_)['cities'][j])['city_id'],
-                                    dict(dict(_)['cities'][j])['latitude'],
-                                    dict(dict(_)['cities'][j])['longitude'] )) # 요소별 삽입 (컬럼명 주의)
-            if len(tmp_result)==int(days):
-                result.append(tmp_result) # path list를 바깥 리스트에 삽입
-
-        return result 
+            for i in range(len(dict(_)['node'])):
+                if i != len(dict(_)['node'])-1:
+                    tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
+                dict(dict(dict(_))['node'][i])['city_id'],
+                dict(dict(dict(_))['rels'][i])['trans_cate']))
+                else:
+                    tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
+                dict(dict(dict(_))['node'][i])['city_id'],
+                                      0))
+            if  not past_result == tmp_result:
+                result_list.append(tuple(tmp_result))
+            past_result=tmp_result
+            tmp_result=list()
+        del result_list[0]
+        print(result_list)
+        result_tuple=set(tuple(result_list))
+        print(result_tuple)
     
     def get_unique_city(paths):
         
