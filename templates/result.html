@@ -18,6 +18,7 @@
         .custom_zoomcontrol span {display:block;width:36px;height:40px;text-align:center;cursor:pointer;}     
         .custom_zoomcontrol span img {width:15px;height:15px;padding:12px 0;border:none;}             
         .custom_zoomcontrol span:first-child{border-bottom:1px solid #bfbfbf;}  
+        .map_wrap_city {position:relative;overflow:hidden;width:500px;height:350px;}
         .label{
             width: 10px;
             height: 10px;
@@ -128,8 +129,6 @@
 
         // Path별 색깔 생성
         var pathColor = pathColorList[i];
-        // var pathColor = '#'+Math.floor(Math.random()*16777215).toString(16);
-        // pathColorList.push(pathColor);
 
         // 지도에 표시할 선을 생성합니다
         var polyline = new kakao.maps.Polyline({
@@ -185,9 +184,89 @@
             marker.setMap(map);
         }
     }
+    // 세부 도시 지도 생성 
+    var detailInfo = JSON.parse('{{ detailInfo | tojson }}');
 
+    // 도시 세부 일정을 보여줍니다.
+    let maps = [];
+
+    async function makeCityMap(city_id) {
+        var c_info = await detailInfo[city_id];
+        coords = new kakao.maps.LatLng(c_info['latitude'], c_info['longitude']);
+
+        console.log(c_info);   
+        var mapContainerCity = document.getElementById('map-' + city_id); // 지도를 표시할 div 
+        var mapOptionCity = { 
+                    center: coords, // 지도의 중심좌표
+                    level: 10 // 지도의 확대 레벨
+                };  
+        var map_city = new kakao.maps.Map(mapContainerCity, mapOptionCity); // 지도를 생성합니다                
+        
+        
+        // Attractions
+        var att_positions = [];
+        var attractions = c_info['attractions'];
+        for(var i = 0; i < attractions.length; i++) {
+            var attraction = attractions[i];
+            
+            att_positions.push({
+                title: attraction[1],
+                latlng: new kakao.maps.LatLng(attraction[3], attraction[2]),
+                content: '<div class="attractions">' + attraction[1] +'</div>', 
+            });
+        }
+
+        // 마커 이미지의 이미지 주소입니다
+        var imageSrc = "https://img.icons8.com/color/48/undefined/marker--v1.png"; 
+
+        for (var i = 0; i < att_positions.length; i ++) {
+            // 마커 이미지의 이미지 크기 입니다
+            var imageSize = new kakao.maps.Size(24, 24); 
+            // 마커 이미지를 생성합니다    
+            var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
+
+            // 마커를 생성합니다
+            var marker = new kakao.maps.Marker({
+                map: map_city, // 마커를 표시할 지도
+                position: att_positions[i].latlng, // 마커를 표시할 위치
+                title : att_positions[i].title, // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+                image : markerImage // 마커 이미지 
+            });
+
+            // 마커에 표시할 인포윈도우를 생성합니다 
+            var infowindow = new kakao.maps.InfoWindow({
+                content: att_positions[i].content // 인포윈도우에 표시할 내용
+            });
+            // 마커에 mouseover 이벤트와 mouseout 이벤트를 등록합니다
+            // 이벤트 리스너로는 클로저를 만들어 등록합니다 
+            // for문에서 클로저를 만들어 주지 않으면 마지막 마커에만 이벤트가 등록됩니다
+            kakao.maps.event.addListener(marker, 'mouseover', makeOverListener(map_city, marker, infowindow));
+            kakao.maps.event.addListener(marker, 'mouseout', makeOutListener(infowindow));
+
+        }
+
+        // 인포윈도우를 표시하는 클로저를 만드는 함수입니다 
+        function makeOverListener(map, marker, infowindow) {
+            return function() {
+                infowindow.open(map, marker);
+            };
+        }
+
+        // 인포윈도우를 닫는 클로저를 만드는 함수입니다 
+        function makeOutListener(infowindow) {
+            return function() {
+                infowindow.close();
+            };
+        }   
+        map.relayout();
+        map.setCenter(coords);
+        maps.push(map_city);
+        
+    }
+
+
+    // Display 여부
     var bDisplay =true;
-
     function doDisplay(obj) {
         
         var cities = document.getElementsByClassName("cities");
@@ -196,7 +275,7 @@
         }
 
         var infoId = "city-" + obj.className;
-        console.log(infoId);
+        makeCityMap(obj.className)
         if(document.getElementById(infoId).style.display === 'block') {
             document.getElementById(infoId).style.display = 'none';
         } else {
@@ -239,7 +318,10 @@
         {% set detailInfo = detailInfo %}
         {% for city_id, detail in detailInfo.items() %}
             <div class= "cities" id="city-{{ city_id }}" style="display: none;">
-                <b>{{ detail.city_name }}</b>
+                <div class="map_wrap_city">
+                    <div id="map-{{ city_id }}" style="width: 80%;height:80%;position:relative;overflow:hidden;"></div> 
+                </div>
+                <b>{{ detail.city_name }}</b>                
                 <div class="detailInfo">
                     <div class="info">
                         <h4>Attractions</h4>
@@ -296,8 +378,7 @@
 
 
 
-
 </body>
 </html>
 
-<!-- [('서울', 'C01', 37.55472785, 126.9695263), ('부산', 'C10', 35.11760513, 129.0450602)] -->
+<!-- [('서울', 'C01', 37.55472785, 126.9695263, ktx), ('부산', 'C10', 35.11760513, 129.0450602, ktx)]  -->

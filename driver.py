@@ -35,16 +35,17 @@ class Neo4jConnection:
 
     def getPaths(conn, city_id_from, city_id_to, depart_time, days):
 
-        new_days = "2" if days == "2" else "4"
+        new_days = "2" if days == "2" else "3"
     
         query_string = '''
-            MATCH p=(:city{city_id:"%s"})-[rels:goes*1..%s]->(:city{city_id:"%s"})
+            MATCH p=(:city{city_id:"%s"})-[rels:goes*2..%s]->(:city{city_id:"%s"})
             WHERE rels[0].depart_time < time('%s')
-            WITH nodes(p) as cities, p
-            RETURN DISTINCT cities
-            LIMIT 100
+              AND reduce(total=0, r in rels | total + r.dist) < 400
+            RETURN distinct nodes(p) as cities 
+            limit 5000
             '''%(city_id_from, new_days, city_id_to, depart_time)
         q = conn.query(query_string, db='traveldb')
+        print(dict(q))
         result = list() # 바깥 리스트
         for _ in q:
             tmp_result=list() # 안쪽 리스트
@@ -190,6 +191,8 @@ class GoogleBigQueryConnection:
             'attractions' : attractions,
             'restaurants' : restaurants,
             'accomodations' : accomodations,
+            'longitude' : longitude,
+            'latitude' : latitude,
         }
 
         return city_id, result

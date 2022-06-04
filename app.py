@@ -51,9 +51,6 @@ def get_result():
         print(city)
         key, value = gc.recommend(conn, city[1], city[0], theme, city[3], city[2])
         details[key] = value
-        # if idx > 1:
-        #     break;
-        # idx += 1
         
     conn.close()
 
@@ -62,7 +59,6 @@ def get_result():
         all_paths={'paths' : paths}, 
         pathColorList=pathColorList, detailInfo=details)
 
-    
 
 
 if __name__ == '__main__':
