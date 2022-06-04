@@ -61,9 +61,7 @@ class Neo4jConnection:
                 dict(dict(dict(_))['node'][i])['city_id'],
                 dict(dict(dict(_))['node'][i])['latitude'],
                 dict(dict(dict(_))['node'][i])['longitude'],
-                dict(dict(dict(_))['rels'][i])['trans_cate'],
-                dict(dict(dict(_))['rels'][i])['depart_time'],
-                dict(dict(dict(_))['rels'][i])['dest_time']                      
+                dict(dict(dict(_))['rels'][i])['trans_cate']               
                                       ))
                 elif i == len(dict(_)['node'])-1:
                     tmp_result_city.append(dict(dict(dict(_))['node'][i])['city_nm'])
@@ -71,9 +69,8 @@ class Neo4jConnection:
                 dict(dict(dict(_))['node'][i])['city_id'],                
                 dict(dict(dict(_))['node'][i])['latitude'],
                 dict(dict(dict(_))['node'][i])['longitude'],
-                                      'train',
-                dict(dict(dict(_))['rels'][i])['depart_time'],
-                dict(dict(dict(_))['rels'][i])['dest_time']))
+                                      'train'
+                ))
             tmp_result_city=tuple(tmp_result_city)
             if  len(dict(_)['node'])==len(tmp_result) and not past_result == tmp_result and tmp_result_city not in result_list_name:
                 result_list_name.add(tmp_result_city)
