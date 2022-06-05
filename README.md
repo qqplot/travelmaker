@@ -34,6 +34,7 @@ CREATE (c:city {city_nm: row.city_name,
 ;
 
 
+
 //LOAD TRANSPORTATION (as relationships)
 LOAD CSV with headers from "file:///transportations.csv" as row
 MATCH (c1:city),(c2:city)
@@ -41,10 +42,15 @@ WHERE c1.city_id = row.depart_id AND c2.city_id = row.dest_id
 MERGE (c1)-[r:goes {tid: row.transportation_id, 
                     depart_time:time(row.depart_time), 
                     destination_time: coalesce(row.destination_time,"0"),
-                    grade:row.grade, fare:toInteger(coalesce(row.fare,"0")), 
-                    duration:row.duration, trans_cate:row.trans_cate}
+                    grade:row.grade, 
+                    fare:toInteger(coalesce(row.fare,"0")), 
+                    duration:row.duration, 
+                    trans_cate:row.trans_cate,                   
+                    depart_time_str:row.depart_time,
+                    destination_time_str: row.destination_time}
             ]->(c2)
 ;
+
 
 //거리넣기
 match (a:city)-[r:goes]->(b:city)
@@ -52,10 +58,11 @@ set r.dist = (point.distance(a.location, b.location))/1000
 ;
 
 //토탈거리로 제한걸기 
-MATCH p=(:city{city_id:"C01"})-[rels:goes*3]->(:city{city_id:"C07"})
-where reduce(total = 0, r IN rels | total + r.dist)<400
-return p
-limit 5000
+ MATCH p=(c1:city{city_id:"C01"})-[rels:goes*2..3]->(c2:city{city_id:"C10"})
+ WHERE rels[0].depart_time < time('10:00') 
+   AND reduce(total=0, r in rels | total+r.dist)<400
+RETURN nodes(p) as node,relationships(p) as rels
+ LIMIT 500
 ;
 
 
