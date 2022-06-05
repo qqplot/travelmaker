@@ -37,13 +37,14 @@ class Neo4jConnection:
 
     def getPaths(conn, city_id_from, city_id_to, depart_time, days):
 
-        new_days = "2" if days == "2" else "4"
+        new_days = "1..2" if days == "2" else "2..3"
         query_string = '''
-            MATCH p=(c1:city{city_id:"%s"})-[rels:goes*1..%s]->(c2:city{city_id:"%s"})
+            MATCH p=(c1:city{city_id:"%s"})-[rels:goes*%s]->(c2:city{city_id:"%s"})
             WHERE rels[0].depart_time < time('%s') and reduce(total=0, r in rels | total+r.dist)<400
             RETURN nodes(p) as node,relationships(p) as rels
             limit 500
             '''%(city_id_from, new_days, city_id_to, depart_time)
+        print(query_string)
         q = conn.query(query_string, db='traveldb')
         result_list=deque()
         result_list.append(0)
@@ -57,22 +58,28 @@ class Neo4jConnection:
                 if i != len(dict(_)['node'])-1 and  dict(dict(dict(_))['node'][i])['city_nm'] not in city_set:
                     tmp_result_city.add(dict(dict(dict(_))['node'][i])['city_nm'])
                     city_set.add(dict(dict(dict(_))['node'][i])['city_nm'])
-                    tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
-                dict(dict(dict(_))['node'][i])['city_id'],
-                dict(dict(dict(_))['node'][i])['latitude'],
-                dict(dict(dict(_))['node'][i])['longitude'],
-                dict(dict(dict(_))['rels'][i])['trans_cate']               
-                                      ))
+                    tmp_result.append((
+                        dict(dict(dict(_))['node'][i])['city_nm'],
+                        dict(dict(dict(_))['node'][i])['city_id'],
+                        dict(dict(dict(_))['node'][i])['latitude'],
+                        dict(dict(dict(_))['node'][i])['longitude'],
+                        dict(dict(dict(_))['rels'][i])['trans_cate'],
+                        dict(dict(dict(_))['rels'][i])['depart_time_str'],
+                        dict(dict(dict(_))['rels'][i])['destination_time_str']
+                        ))
                 elif i == len(dict(_)['node'])-1:
                     tmp_result_city.add(dict(dict(dict(_))['node'][i])['city_nm'])
-                    tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
-                dict(dict(dict(_))['node'][i])['city_id'],                
-                dict(dict(dict(_))['node'][i])['latitude'],
-                dict(dict(dict(_))['node'][i])['longitude'],
-                                      'train'
-                ))
+                    tmp_result.append((
+                        dict(dict(dict(_))['node'][i])['city_nm'],
+                        dict(dict(dict(_))['node'][i])['city_id'],                
+                        dict(dict(dict(_))['node'][i])['latitude'],
+                        dict(dict(dict(_))['node'][i])['longitude'],
+                        'train',
+                        "12:00:00",
+                        "13:00:00"
+                        ))
             tmp_result_city=tuple(tmp_result_city)
-            print(tmp_result_city)
+            
             if  len(dict(_)['node'])==len(tmp_result) and not past_result == tmp_result and tmp_result_city not in result_list_name:
                 result_list_name.add(tmp_result_city)
                 result_list.append(tuple(tmp_result))

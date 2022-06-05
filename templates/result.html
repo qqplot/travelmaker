@@ -370,6 +370,28 @@
         }
         document.getElementById(infoId).scrollIntoView();
     }
+
+    function showHide(key) {
+
+        var a = document.getElementById(key.id);
+        var divId = key.id.replace('a', 'div');
+        var div = document.getElementById(divId);
+        
+        div.style.cursor = "hand";
+
+        if(div.style.display == "") {
+            div.style.display = "none";
+            div.style.backgroundColor="grey";
+            a.style.color = "black";
+        } else { 
+            x = event.x+document.body.scrollLeft;
+            y = event.y+document.body.scrollTop;
+            div.style.left = x -350;
+            div.style.top = y + 25;
+            div.style.display="";
+            a.style.color = "red";
+        }
+    }
 </script>
 
 <h2>Paths</h2>
@@ -389,7 +411,17 @@
                     {{ node[0] }}
                 </a>
                 {% if not loop.last: %}
-                    -({{ node[4] }})->
+                <div id='div-{{ node[1] }}-{{ node[5] }}' style='DISPLAY:none;POSITION:absolute;background-color:"grey";'>
+                    <h2>[Time Table]</h2>
+                    <p><b>Depart Time : </b>{{ node[5] }}</p>
+                    <p><b>Destination Time : </b>{{ node[6] }}</p><br/>
+                </div>
+                <a id='a-{{ node[1] }}-{{ node[5] }}'
+                   onmouseover="javascript:showHide(this);" 
+                   onmouseout="javascript:showHide(this);" 
+                   style="CURSOR:hand">
+                   -({{ node[4] }})->
+                </a>
                 {% endif %}
                 
             {% endfor %}
