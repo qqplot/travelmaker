@@ -411,7 +411,7 @@
                 <b>{{ detail.city_name }}</b>                
                 <div class="detailInfo">
                     <div class="info">
-                        <h4>Attractions</h4>
+                        <span style="align-items: column;"><img src="https://img.icons8.com/color/48/undefined/marker--v1.png"/><h4>Attractions</h4></span>
                         <ul>
                         {% for at in detail['attractions'] %}
                             <li>{{ at[1] }}</li>
@@ -419,7 +419,8 @@
                         </ul>
                     </div>
                     <div class="info">
-                        <h4>Restaurants</h4>                        
+                        <span style="align-items: column;"><img src="https://img.icons8.com/color/48/undefined/food-bar.png"/><h4>Restaurants</h4></span>
+                        <p>Near by the Attractions</p>                        
                         {% for re in detail['restaurants'] %}
                             <ul>
                                 <li>Type : {{ re[0] }}</li>
@@ -430,7 +431,7 @@
                         
                     </div>
                     <div class="info">
-                        <h4>Accomodations</h4> 
+                        <span style="align-items: column;"><img src="https://img.icons8.com/color/48/undefined/hotel-information.png"/><h4>Accomodations</h4></span>
                         <p>Near by the Station</p>
                         {% for ac in detail['accomodations'] %}
                             <ul>

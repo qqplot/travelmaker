@@ -55,6 +55,7 @@ class Neo4jConnection:
             city_set=set()
             for i in range(len(dict(_)['node'])):
                 if i != len(dict(_)['node'])-1 and  dict(dict(dict(_))['node'][i])['city_nm'] not in city_set:
+                    tmp_result_city.add(dict(dict(dict(_))['node'][i])['city_nm'])
                     city_set.add(dict(dict(dict(_))['node'][i])['city_nm'])
                     tmp_result.append((dict(dict(dict(_))['node'][i])['city_nm'],
                 dict(dict(dict(_))['node'][i])['city_id'],
@@ -71,6 +72,7 @@ class Neo4jConnection:
                                       'train'
                 ))
             tmp_result_city=tuple(tmp_result_city)
+            print(tmp_result_city)
             if  len(dict(_)['node'])==len(tmp_result) and not past_result == tmp_result and tmp_result_city not in result_list_name:
                 result_list_name.add(tmp_result_city)
                 result_list.append(tuple(tmp_result))
@@ -302,16 +304,22 @@ class GoogleBigQueryConnection:
     
 
 if __name__ == "__main__":
-    conn = GoogleBigQueryConnection()
+
+    neo4j_uri = "bolt://localhost:7687"
+    neo4j_user = "neo4j"
+    neo4j_pwd = "0097"
+    conn = Neo4jConnection(uri=neo4j_uri, user=neo4j_user, pwd=neo4j_pwd)
+    
     city_id_from = "C01"
-    city_id_to = "C05"
+    city_id_to = "C22"
     depart_time = "13:00"
-    days = "2"
+    days = "5"
     theme = 'Nature'
     longitude = "128.6287755"
     latitude = "35.87943614"
 
-    city_id, result = GoogleBigQueryConnection.recommend(conn, city_id_to, theme, longitude, latitude)
+    result = Neo4jConnection.getPaths(conn, city_id_from, city_id_to, depart_time, days)
+
 
     print(result)
 
