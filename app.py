@@ -22,6 +22,7 @@ def get_result():
     if result is None:
         return "404 Error!"
     
+    print("Connect to Neo4j...")
     conn = nc(uri=neo4j_uri, user=neo4j_user, pwd=neo4j_pwd)
 
     theme = result['theme']
@@ -30,9 +31,11 @@ def get_result():
     depart_time  = result['depart_time'] 
     days = result['days']
 
+    print("Get paths from Neo4j...")
     paths = nc.getPaths(conn, city_id_from, city_id_to, depart_time, days)
 
     conn.close()
+
     # Path별 칼라 생성
     pathColorList = []
     for _ in range(len(paths)):
@@ -43,12 +46,13 @@ def get_result():
     cities = nc.get_unique_city(paths)
 
     # 구글 빅쿼리에서 Detail 정보를 가져온다.
+    print("Connect to Google BigQuery ...")
     conn = gc()
  
     details = {}
 
-    for city in cities:
-        print(city)
+    for idx, city in enumerate(cities):
+        print("[{}/{}] ".format(idx+1, len(cities)), city)
         key, value = gc.recommend(conn, city[1], city[3], city[2], theme, city[0])
         details[key] = value
         

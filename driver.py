@@ -40,11 +40,11 @@ class Neo4jConnection:
         new_days = "1..2" if days == "2" else "2..3"
         query_string = '''
             MATCH p=(c1:city{city_id:"%s"})-[rels:goes*%s]->(c2:city{city_id:"%s"})
-            WHERE rels[0].depart_time < time('%s') and reduce(total=0, r in rels | total+r.dist)<400
+            WHERE rels[0].depart_time > time('%s') and reduce(total=0, r in rels | total+r.dist)<400
             RETURN nodes(p) as node,relationships(p) as rels
             limit 500
             '''%(city_id_from, new_days, city_id_to, depart_time)
-        print(query_string)
+        # print(query_string)
         q = conn.query(query_string, db='traveldb')
         result_list=deque()
         result_list.append(0)
@@ -102,8 +102,6 @@ class Neo4jConnection:
                 result_list_shuffle[i]=result_list[tmp_list[i]]
 
             return result_list_shuffle
-
-
     
     
     def get_unique_city(paths):

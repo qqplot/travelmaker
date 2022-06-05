@@ -389,6 +389,7 @@
             div.style.left = x -350;
             div.style.top = y + 25;
             div.style.display="";
+            div.style.backgroundColor="grey";
             a.style.color = "red";
         }
     }
@@ -410,13 +411,14 @@
                 <a href="javascript:;" onclick="doDisplay(this);" class="{{ node[1] }}">
                     {{ node[0] }}
                 </a>
+                {% set outer_loop = loop %}
                 {% if not loop.last: %}
-                <div id='div-{{ node[1] }}-{{ node[5] }}' style='DISPLAY:none;POSITION:absolute;background-color:"grey";'>
+                <div id='div-{{ node[1] }}-{{ outer_loop.index }}-{{ node[5] }}-{{ node[6] }}' style='DISPLAY:none;POSITION:absolute;background-color:"grey";'>
                     <h2>[Time Table]</h2>
                     <p><b>Depart Time : </b>{{ node[5] }}</p>
                     <p><b>Destination Time : </b>{{ node[6] }}</p><br/>
                 </div>
-                <a id='a-{{ node[1] }}-{{ node[5] }}'
+                <a id='a-{{ node[1] }}-{{ outer_loop.index }}-{{ node[5] }}-{{ node[6] }}'
                    onmouseover="javascript:showHide(this);" 
                    onmouseout="javascript:showHide(this);" 
                    style="CURSOR:hand">
