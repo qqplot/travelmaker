@@ -1,9 +1,11 @@
 
 # Travel Make Project
 
-[!img](https://github.com/qqplot/travelmaker/blob/main/assets/index_capture.gif)
+<p align="center">
+<img src="https://github.com/qqplot/travelmaker/blob/main/assets/index_capture.gif"/>
+<img src="https://github.com/qqplot/travelmaker/blob/main/assets/result_capture.gif"/>
+</p>
 
-[!img](https://github.com/qqplot/travelmaker/blob/main/assets/result_capture.gif)
 
 
 ## 1. Python 가상환경 세팅
