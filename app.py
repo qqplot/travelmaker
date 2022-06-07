@@ -8,7 +8,6 @@ neo4j_user = "neo4j"
 neo4j_pwd = "0097"
 
 app = Flask(__name__, static_url_path="/templates/")
-# app.config['SERVER_NAME'] = 'flask.dev'
 
 @app.route('/')
 def map_func():
