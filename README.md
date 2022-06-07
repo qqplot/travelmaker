@@ -4,9 +4,9 @@
 <p align="center">
 <img src="https://github.com/qqplot/travelmaker/blob/main/assets/index_capture.gif"/>
 <img src="https://github.com/qqplot/travelmaker/blob/main/assets/result_capture.gif"/>
-<img width="1280" height="720" src="https://www.youtube.com/embed/mqWf_fqedMo" />
 </p>
 
+<img src="https://www.youtube.com/embed/mqWf_fqedMo" />
 
 
 ## 1. Python 가상환경 세팅
