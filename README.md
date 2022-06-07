@@ -4,6 +4,7 @@
 <p align="center">
 <img src="https://github.com/qqplot/travelmaker/blob/main/assets/index_capture.gif"/>
 <img src="https://github.com/qqplot/travelmaker/blob/main/assets/result_capture.gif"/>
+<iframe width="1280" height="720" src="https://www.youtube.com/embed/mqWf_fqedMo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </p>
 
 
