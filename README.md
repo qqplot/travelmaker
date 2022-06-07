@@ -6,7 +6,7 @@
 <img src="https://github.com/qqplot/travelmaker/blob/main/assets/result_capture.gif"/>
 </p>
 
-<a src="https://www.youtube.com/embed/mqWf_fqedMo">Full Demo Video on Youtube<a/>
+<a href="https://www.youtube.com/embed/mqWf_fqedMo">Full Demo Video on Youtube<a/>
 
 
 ## 1. Python 가상환경 세팅
