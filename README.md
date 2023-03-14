@@ -1,12 +1,13 @@
 
 # Travel Make Project
 
+
+[![Video Label](http://img.youtube.com/vi/mqWf_fqedMo/0.jpg)](https://youtu.be/mqWf_fqedMo)
+
 <p align="center">
 <img src="https://github.com/qqplot/travelmaker/blob/main/assets/index_capture.gif"/>
 <img src="https://github.com/qqplot/travelmaker/blob/main/assets/result_capture.gif"/>
 </p>
-
-<a href="https://www.youtube.com/embed/mqWf_fqedMo">Full Demo Video on Youtube<a/>
 
 
 ## 1. Python 가상환경 세팅
