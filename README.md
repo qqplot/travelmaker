@@ -1,12 +1,14 @@
 
 # Travel Make Project
 
-
+## Demo Video
 [![Video Label](http://img.youtube.com/vi/mqWf_fqedMo/0.jpg)](https://youtu.be/mqWf_fqedMo)
 
+
+## Image
 <p align="center">
-<img src="https://github.com/qqplot/travelmaker/blob/main/assets/index_capture.gif"/>
-<img src="https://github.com/qqplot/travelmaker/blob/main/assets/result_capture.gif"/>
+<img src="https://github.com/qqplot/travelmaker/blob/main/assets/index_capture.gif" width="300" height="300"/> 
+<img src="https://github.com/qqplot/travelmaker/blob/main/assets/result_capture.gif" width="300" height="300"/>
 </p>
 
 
